@@ -1,0 +1,28 @@
+name: CI
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup CMake (latest)
+        uses: lukka/get-cmake@latest
+      - name: Setup Fortran
+        uses: fortran-lang/setup-fortran@v1.8.0
+        with:
+          compiler: gcc
+          version: 'latest'
+          update-environment: true
+      - name: Configure (CMake)
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+      - name: Build (CMake)
+        run: cmake --build build --config Release -- -j
+      - name: Run program
+        env:
+          OMP_NUM_THREADS: '4'
+        run: |
+          ./build/hello-openmp || (echo "Executable not found" && ls -la build && exit 1)
